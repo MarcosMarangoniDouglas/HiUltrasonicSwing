@@ -1,56 +1,22 @@
 package infrastructure;
 
-import java.util.ArrayList;
-
 public class SignalGenerator {
-    private double symbolSize;
-    private double f;
-    private double stepSize;
-    private double sampleRate;
-    private ArrayList<Double> data;
-    private ArrayList<Double> sync;
+    private FSKConfig fskConfig;
 
-    public SignalGenerator(double symbolSize, double f, double stepSize) {
-        this.symbolSize = symbolSize;
-        this.f = f;
-        this.stepSize = stepSize;
-        this.sampleRate = 1.0 / stepSize;
+    public SignalGenerator(FSKConfig fskConfig) {
+        this.fskConfig = fskConfig;
     }
-    public double getSymbolSize() {
-        return symbolSize;
-    }
-    public void setSymbolSize(double symbolSize) {
-        this.symbolSize = symbolSize;
-    }
-    public double getF() {
-        return f;
-    }
-    public void setF(double f) {
-        this.f = f;
-    }
-    public double getStepSize() {
-        return stepSize;
-    }
-    public void setStepSize(double stepSize) {
-        this.stepSize = stepSize;
-    }
-    public ArrayList<Double> getData() {
-        return data;
-    }
-    public ArrayList<Double> getSync() {
-        return sync;
-    }
-    public ArrayList<Double> generate() {
-        try {
-            data = new ArrayList<Double>();
-            double rad = 0;
-            // Why not sampleRate * stepSize ??
-            for (int i = 0; i < symbolSize / stepSize; i++) {
-                rad = (2 * Math.PI * f * i * stepSize);
-                data.add(Math.cos(rad));
-            }
-        }catch(Exception e){
-            e.printStackTrace();
+
+    public double[] generate(double f) {
+        double frame;
+        double t;
+        int signalFrameSize = fskConfig.sampleRate / fskConfig.modemBaudRate;
+        double[] data = new double[signalFrameSize];
+
+        for (int i = 0; i < signalFrameSize; i++) {
+            t = i * (1/(double)fskConfig.sampleRate);
+            frame = Math.cos(2 * Math.PI * f * t);
+            data[i] = frame;
         }
         return data;
     }
@@ -63,20 +29,42 @@ public class SignalGenerator {
      * t = actual time
      * f1 = final frequency
      * f0 = initial frequency
-     * T = time duration
+     * T = Time it takes to sweep from f0 to f1
      * phase is optional
      * @return The chirp signal
      */
-    public ArrayList<Double> generateSync() {
-        sync = new ArrayList<Double>();
-        double rad = 0;
-//        ATENUEI O SINAL DE INICIO
-//        double k = ((16000 - 6000) / symbolSize);
-        double k = ((3000) / symbolSize);
-        for (int i = 0; i < symbolSize * sampleRate; i++) {
-            rad = (2 * Math.PI * ((k / 2) * i * stepSize + 14000) * i * stepSize);
-            sync.add(Math.cos(rad));
+    public double[] generateChirp() {
+        double frame;
+        double t;
+        double f;
+        double f0 = fskConfig.modemChirpFreqLow;
+        double f1 = fskConfig.modemChirpFreqHigh;
+
+        int signalFrameSize = fskConfig.sampleRate / 2;
+        double[] sync = new double[signalFrameSize];
+
+        double T = 1/(double)fskConfig.modemBaudRate;
+        double k = (f1 - f0) / T;
+        for (int i = 0; i < signalFrameSize; i++) {
+            t = i * (1/(double)fskConfig.sampleRate);
+            f = (k / 2) * t + f0;
+            frame = Math.cos(2 * Math.PI * f * t);
+            sync[i] = frame;
         }
         return sync;
+    }
+
+    public double[] concatenateSignals(double[] signalA, double[] signalB) {
+        if (signalA == null) return signalB;
+        if (signalB == null) return signalA;
+
+        int aLen = signalA.length;
+        int bLen = signalB.length;
+
+        double[] c = new double[aLen + bLen];
+        System.arraycopy(signalA, 0, c, 0, aLen);
+        System.arraycopy(signalB, 0, c, aLen, bLen);
+
+        return c;
     }
 }

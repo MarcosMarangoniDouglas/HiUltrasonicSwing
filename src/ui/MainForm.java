@@ -2,31 +2,40 @@ package ui;
 
 import infrastructure.FSKConfig;
 import infrastructure.FSKEncoder;
-import infrastructure.FSKMarioEncoder;
+import infrastructure.StringHandler;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.nio.ByteBuffer;
 
-public class MainForm extends JFrame implements FSKMarioEncoder.OnEncodeFinishListener {
+public class MainForm extends JFrame
+        implements FSKEncoder.OnEncodeFinishListener {
     private JPanel mainPanel;
     private JLabel lblAppName;
     private JTextField txtInput;
     private JButton btnGenerate;
     private JLabel lblEncodeStatus;
 
-    FSKMarioEncoder fskMarioEncoder;
+    FSKEncoder fskEncoder;
+    FSKConfig fskConfig;
 
     public MainForm() {
-        fskMarioEncoder = new FSKMarioEncoder(44100);
-        fskMarioEncoder.setOnEncodeFinishListener(this);
+        try {
+            fskConfig = new FSKConfig(
+                    FSKConfig.SAMPLE_RATE_44100,
+                    FSKConfig.PCM_16BIT,
+                    FSKConfig.CHANNELS_MONO,
+                    FSKConfig.SOFT_MODEM_MODE_1);
+            fskEncoder = new FSKEncoder(fskConfig);
+            fskEncoder.setOnEncodeFinishListener(this);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         add(mainPanel);
         this.setTitle("HiUltrasonic App");
@@ -35,9 +44,16 @@ public class MainForm extends JFrame implements FSKMarioEncoder.OnEncodeFinishLi
             @Override
             public void actionPerformed(ActionEvent e) {
                 lblEncodeStatus.setText("Encoding text into a wave...");
-                String input = txtInput.getText();
-                fskMarioEncoder.setData(input);
-                fskMarioEncoder.startModulation();
+                StringBuilder input = new StringBuilder(txtInput.getText());
+                while (input.length() < 5) {
+                    input.append(" ");
+                }
+                StringHandler stringHandler = new StringHandler(input.toString());
+                /**
+                 * MARIO ENCODER PART
+                 */
+                fskEncoder.setData(stringHandler.getB());
+                fskEncoder.startModulation();
             }
         });
     }
