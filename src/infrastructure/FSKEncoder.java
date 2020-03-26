@@ -26,6 +26,8 @@ public class FSKEncoder {
     private FSKConfig fskConfig;
     private SignalGenerator signalGenerator;
 
+    public FSKEncoder() { }
+
     public FSKEncoder(FSKConfig fskConfig) {
         this.fskConfig = fskConfig;
         signalGenerator = new SignalGenerator(fskConfig);
@@ -40,6 +42,7 @@ public class FSKEncoder {
     }
 
     private void initFrequencies() {
+        modulated = null;
         int frequencyInterval = (fskConfig.modemFreqHigh - fskConfig.modemFreqLow) / 16;
         frequencies = new int[16];
         for (int i = 0; i < frequencies.length; i++) {
@@ -51,8 +54,8 @@ public class FSKEncoder {
         double[] chirpSignalStart = signalGenerator.generateChirp();
         modulated = signalGenerator.concatenateSignals(modulated, chirpSignalStart);
         for (int i = 0; i < data.length - 3; i+=4) {
-            int[] hexa = Arrays.copyOfRange(data, i, i+4);
-            int decimal = hexaToDecimal(hexa);
+            int[] binary = Arrays.copyOfRange(data, i, i+4);
+            int decimal = binaryToDecimal(binary);
             double[] signal = signalGenerator.generate(frequencies[decimal]);
             modulated = signalGenerator.concatenateSignals(modulated, signal);
         }
@@ -61,11 +64,11 @@ public class FSKEncoder {
         }
     }
 
-    private int hexaToDecimal(int[] hexa) {
+    private int binaryToDecimal(int[] binary) {
         int sum = 0;
         int counter = 0;
-        for (int j = hexa.length-1; j >= 0; j--) {
-            sum+=(int)Math.pow(2,counter)*hexa[j];
+        for (int j = binary.length-1; j >= 0; j--) {
+            sum+=(int)Math.pow(2,counter)*binary[j];
             counter++;
         }
         return sum;
@@ -78,6 +81,12 @@ public class FSKEncoder {
 
     public void setData(int[] data) {
         this.data = data;
+    }
+
+    public void setFskConfig(FSKConfig fskConfig) {
+        this.fskConfig = fskConfig;
+        signalGenerator = new SignalGenerator(fskConfig);
+        initFrequencies();
     }
 
     public double[] getModulated() {

@@ -23,17 +23,18 @@ public class FSKConfig {
     public static final int SOFT_MODEM_MODE_1_BAUD_RATE = 2;
     public static final int SOFT_MODEM_MODE_1_LOW_FREQ = 12000;
     public static final int SOFT_MODEM_MODE_1_HIGH_FREQ = 14000;
+    public static final int SOFT_MODEM_MODE_1_CHIRP_BAUD_RATE = 2;
     public static final int SOFT_MODEM_MODE_1_CHIRP_LOW_FREQ = 15000;
     public static final int SOFT_MODEM_MODE_1_CHIRP_HIGH_FREQ = 17000;
 
     // Low frequency
     public static final int SOFT_MODEM_MODE_2 = 2;
     public static final int SOFT_MODEM_MODE_2_BAUD_RATE = 2;
-    public static final int SOFT_MODEM_MODE_2_LOW_FREQ = 20;
-    public static final int SOFT_MODEM_MODE_2_HIGH_FREQ = 30;
-    public static final int SOFT_MODEM_MODE_2_CHIRP_LOW_FREQ = 10;
-    public static final int SOFT_MODEM_MODE_2_CHIRP_HIGH_FREQ = 19;
-
+    public static final int SOFT_MODEM_MODE_2_LOW_FREQ = 500;
+    public static final int SOFT_MODEM_MODE_2_HIGH_FREQ = 1000;
+    public static final int SOFT_MODEM_MODE_2_CHIRP_BAUD_RATE = 2;
+    public static final int SOFT_MODEM_MODE_2_CHIRP_LOW_FREQ = 100;
+    public static final int SOFT_MODEM_MODE_2_CHIRP_HIGH_FREQ = 500;
 
     // /
 
@@ -47,13 +48,14 @@ public class FSKConfig {
     public int samplesPerBit;
 
     public int modemBaudRate;
+    public int modemChirpBaudRate;
     public int modemFreqLow;
     public int modemFreqHigh;
     public int modemChirpFreqLow;
     public int modemChirpFreqHigh;
 
     public FSKConfig(int sampleRate, int pcmFormat, int channels,
-                     int modemMode) throws IOException {
+                     int modemMode) {
         this.sampleRate = sampleRate;
         this.pcmFormat = pcmFormat;
         this.channels = channels;
@@ -67,6 +69,7 @@ public class FSKConfig {
                 this.modemFreqHigh = SOFT_MODEM_MODE_1_HIGH_FREQ;
                 this.modemChirpFreqLow = SOFT_MODEM_MODE_1_CHIRP_LOW_FREQ;
                 this.modemChirpFreqHigh = SOFT_MODEM_MODE_1_CHIRP_HIGH_FREQ;
+                this.modemChirpBaudRate = SOFT_MODEM_MODE_1_CHIRP_BAUD_RATE;
 
                 break;
 
@@ -77,16 +80,28 @@ public class FSKConfig {
                 this.modemFreqHigh = SOFT_MODEM_MODE_2_HIGH_FREQ;
                 this.modemChirpFreqLow = SOFT_MODEM_MODE_2_CHIRP_LOW_FREQ;
                 this.modemChirpFreqHigh = SOFT_MODEM_MODE_2_CHIRP_HIGH_FREQ;
+                this.modemChirpBaudRate = SOFT_MODEM_MODE_2_CHIRP_BAUD_RATE;
 
                 break;
 
         }
 
-        if (this.sampleRate % this.modemBaudRate > 0) {
-            // wrong config
+        this.samplesPerBit = this.sampleRate / this.modemBaudRate;
 
-            throw new IOException("Invalid sample rate or baudrate");
-        }
+    }
+
+    public FSKConfig(int sampleRate, int pcmFormat, int channels,
+                     CustomModemMode modemMode) throws IOException {
+        this.sampleRate = sampleRate;
+        this.pcmFormat = pcmFormat;
+        this.channels = channels;
+
+        this.modemBaudRate = modemMode.modemBaudRate;
+        this.modemFreqLow = modemMode.modemFreqLow;
+        this.modemFreqHigh = modemMode.modemFreqHigh;
+        this.modemChirpFreqLow = modemMode.modemChirpFreqLow;
+        this.modemChirpFreqHigh = modemMode.modemChirpFreqHigh;
+        this.modemChirpBaudRate = modemMode.modemChirpBaudRate;
 
         this.samplesPerBit = this.sampleRate / this.modemBaudRate;
 

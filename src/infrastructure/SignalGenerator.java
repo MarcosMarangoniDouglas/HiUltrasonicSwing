@@ -10,10 +10,10 @@ public class SignalGenerator {
     public double[] generate(double f) {
         double frame;
         double t;
-        int signalFrameSize = fskConfig.sampleRate / fskConfig.modemBaudRate;
-        double[] data = new double[signalFrameSize];
+        int numberOfFrames = fskConfig.sampleRate / fskConfig.modemBaudRate;
+        double[] data = new double[numberOfFrames];
 
-        for (int i = 0; i < signalFrameSize; i++) {
+        for (int i = 0; i < numberOfFrames; i++) {
             t = i * (1/(double)fskConfig.sampleRate);
             frame = Math.cos(2 * Math.PI * f * t);
             data[i] = frame;
@@ -40,18 +40,18 @@ public class SignalGenerator {
         double f0 = fskConfig.modemChirpFreqLow;
         double f1 = fskConfig.modemChirpFreqHigh;
 
-        int signalFrameSize = fskConfig.sampleRate / 2;
-        double[] sync = new double[signalFrameSize];
+        int numberOfFrames = fskConfig.sampleRate / fskConfig.modemChirpBaudRate;
+        double[] chirp = new double[numberOfFrames];
 
-        double T = 1/(double)fskConfig.modemBaudRate;
+        double T = 1/(double)fskConfig.modemChirpBaudRate;
         double k = (f1 - f0) / T;
-        for (int i = 0; i < signalFrameSize; i++) {
+        for (int i = 0; i < numberOfFrames; i++) {
             t = i * (1/(double)fskConfig.sampleRate);
             f = (k / 2) * t + f0;
             frame = Math.cos(2 * Math.PI * f * t);
-            sync[i] = frame;
+            chirp[i] = frame;
         }
-        return sync;
+        return chirp;
     }
 
     public double[] concatenateSignals(double[] signalA, double[] signalB) {

@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="HiUltrasonicSwing:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/HiUltrasonicSwing_jar</output-path>
+    <root id="archive" name="HiUltrasonicSwing.jar">
+      <element id="module-output" name="HiUltrasonicSwing" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jars/json-simple-1.1.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
